@@ -74,3 +74,10 @@ python compare_resources.py ./resources_cn ./resources_en ./contrast.xlsx
 ### Q: 如果某个文件夹中有文件另一个没有怎么办？
 **A:** 只有MD5值匹配的文件会出现在结果中，独有的文件不会显示
 
+# v2版本相较于v1版本的区别
+
+v2版本增加了图片预览效果
+
+需额外下载第三方库
+
+> pip install Pillow
