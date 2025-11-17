@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from collections import defaultdict
 import openpyxl
-from openpyxl.styles import Font, PatternFill
+from openpyxl.styles import Font, PatternFill, Alignment
 
 
 def calculate_md5(file_path):
@@ -80,7 +80,7 @@ def export_to_excel(duplicate_files, output_file):
     header_font = Font(bold=True, color="FFFFFF")
     
     # 写入表头
-    headers = ["组号", "MD5值", "文件路径", "文件大小(字节)"]
+    headers = ["组号", "MD5值", "文件路径", "文件大小(字节)", "重复文件数量"]
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=header)
         cell.fill = header_fill
@@ -91,6 +91,9 @@ def export_to_excel(duplicate_files, output_file):
     group_num = 1
     
     for md5, paths in duplicate_files.items():
+        duplicate_count = len(paths)  # 计算该组重复文件的数量
+        start_row = row  # 记录该组的起始行
+        
         for path in paths:
             try:
                 file_size = os.path.getsize(path)
@@ -103,6 +106,18 @@ def export_to_excel(duplicate_files, output_file):
             ws.cell(row=row, column=4, value=file_size)
             row += 1
         
+        # 合并该组的"重复文件数量"单元格并设置值
+        end_row = row - 1
+        if start_row == end_row:
+            # 只有一行，不需要合并
+            cell = ws.cell(row=start_row, column=5, value=duplicate_count)
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        else:
+            # 多行，合并单元格
+            ws.merge_cells(start_row=start_row, start_column=5, end_row=end_row, end_column=5)
+            cell = ws.cell(row=start_row, column=5, value=duplicate_count)
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
         group_num += 1
     
     # 调整列宽（增大以便完整显示内容）
@@ -110,6 +125,7 @@ def export_to_excel(duplicate_files, output_file):
     ws.column_dimensions['B'].width = 40  # MD5值需要32个字符
     ws.column_dimensions['C'].width = 120  # 文件路径需要更宽
     ws.column_dimensions['D'].width = 20
+    ws.column_dimensions['E'].width = 18  # 重复文件数量
     
     # 保存文件
     wb.save(output_file)
